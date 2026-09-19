@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Shield } from 'lucide-react'
+import { Shield, KeyRound } from 'lucide-react'
 import { DataTable, type Column } from '@/components/admin/DataTable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,21 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate, getInitials, logActivity } from '@/lib/utils'
 import type { Admin } from '@/types'
+
+// Change password schema
+const passwordSchema = z.object({
+  current_password: z.string().min(1, 'Current password is required'),
+  new_password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirm_password: z.string(),
+}).refine(d => d.new_password === d.confirm_password, {
+  message: 'Passwords do not match',
+  path: ['confirm_password'],
+}).refine(d => d.current_password !== d.new_password, {
+  message: 'New password must be different from current password',
+  path: ['new_password'],
+})
+
+type PasswordFormData = z.infer<typeof passwordSchema>
 
 // Single schema — password fields are always optional at schema level.
 // We enforce "required when adding" manually in onSubmit.
@@ -45,11 +60,23 @@ export default function AdministratorsPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Admin | null>(null)
   const [saving, setSaving] = useState(false)
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
   const { admin: currentAdmin } = useAuth()
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { role: 'admin', status: 'active', password: '', confirm_password: '' },
+  })
+
+  const {
+    register: registerPw,
+    handleSubmit: handleSubmitPw,
+    reset: resetPw,
+    formState: { errors: errorsPw },
+  } = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: { current_password: '', new_password: '', confirm_password: '' },
   })
 
   useEffect(() => { fetchData() }, [])
@@ -113,6 +140,31 @@ export default function AdministratorsPage() {
     } catch (e: any) {
       console.error('[delete-admin] error:', e)
       toast.error(e?.message || 'Failed to delete.')
+    }
+  }
+
+  async function handleChangePassword(formData: PasswordFormData) {
+    setChangingPassword(true)
+    try {
+      // Verify current password by re-signing in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: currentAdmin!.email,
+        password: formData.current_password,
+      })
+      if (signInError) throw new Error('Current password is incorrect.')
+
+      // Update to new password
+      const { error } = await supabase.auth.updateUser({ password: formData.new_password })
+      if (error) throw error
+
+      await logActivity(currentAdmin, `Changed own password`, 'Administrators')
+      toast.success('Password updated successfully.')
+      setPasswordModalOpen(false)
+      resetPw()
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to update password.')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -245,6 +297,20 @@ export default function AdministratorsPage() {
         addLabel="Add Administrator"
         emptyMessage="No administrators found"
         emptyIcon={<Shield className="w-10 h-10 opacity-30" />}
+        actions={row => row.id === currentAdmin?.id ? (
+          <div className="relative group/tooltip">
+            <button
+              onClick={() => { resetPw(); setPasswordModalOpen(true) }}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+              aria-label="Change password"
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
+            <div className="absolute right-0 bottom-full mb-1.5 px-2 py-1 rounded-lg bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50">
+              Change my password
+            </div>
+          </div>
+        ) : null}
       />
 
       <AnimatePresence>
@@ -335,6 +401,58 @@ export default function AdministratorsPage() {
                 <div className="flex gap-3 pt-2">
                   <Button type="button" variant="outline" className="flex-1" onClick={() => setModalOpen(false)}>Cancel</Button>
                   <Button type="submit" className="flex-1" loading={saving}>{editing ? 'Update' : 'Create'}</Button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Change Password Modal */}
+      <AnimatePresence>
+        {passwordModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPasswordModalOpen(false)} />
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Change Password</h2>
+                  <p className="text-xs text-gray-400">Update your own account password</p>
+                </div>
+              </div>
+              <form onSubmit={handleSubmitPw(handleChangePassword)} className="space-y-4">
+                <Input
+                  label="Current Password *"
+                  type="password"
+                  placeholder="Enter your current password"
+                  {...registerPw('current_password')}
+                  error={errorsPw.current_password?.message}
+                />
+                <Input
+                  label="New Password *"
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  {...registerPw('new_password')}
+                  error={errorsPw.new_password?.message}
+                />
+                <Input
+                  label="Confirm New Password *"
+                  type="password"
+                  placeholder="Re-enter new password"
+                  {...registerPw('confirm_password')}
+                  error={errorsPw.confirm_password?.message}
+                />
+                <div className="flex gap-3 pt-2">
+                  <Button type="button" variant="outline" className="flex-1" onClick={() => setPasswordModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="flex-1" loading={changingPassword}>Update Password</Button>
                 </div>
               </form>
             </motion.div>
