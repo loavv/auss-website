@@ -286,8 +286,11 @@ function OfficersTab() {
     ])
     setData(officerRes.data || [])
     setCategories(catRes.data || [])
-    const existing = Array.from(new Set((officerRes.data || []).map(r => r.hierarchy_row ?? 1))).sort((a, b) => a - b)
-    setAvailableRows(existing.length > 0 ? existing : [1])
+    const usedRows = Array.from(new Set((officerRes.data || []).map(r => r.hierarchy_row ?? 1))).sort((a, b) => a - b)
+    const maxRow = usedRows.length > 0 ? Math.max(...usedRows) : 1
+    // Always show rows 1 through maxRow with no gaps, so admins can always pick any row
+    const allRows = Array.from({ length: maxRow }, (_, i) => i + 1)
+    setAvailableRows(allRows.length > 0 ? allRows : [1])
     setLoading(false)
   }
 
