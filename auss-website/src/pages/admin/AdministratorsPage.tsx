@@ -85,11 +85,33 @@ export default function AdministratorsPage() {
       toast.error('You cannot delete your own account.')
       return
     }
-    const { error } = await supabase.from('admins').delete().eq('id', row.id)
-    if (error) { toast.error('Failed to delete.'); return }
-    await logActivity(currentAdmin, `Deleted administrator: ${row.full_name}`, 'Administrators', `Role: ${row.role}, Email: ${row.email}`)
-    toast.success('Administrator removed.')
-    fetchData()
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('No active session.')
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-admin-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ user_id: row.id }),
+        }
+      )
+
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to delete.')
+
+      await logActivity(currentAdmin, `Deleted administrator: ${row.full_name}`, 'Administrators', `Role: ${row.role}, Email: ${row.email}`)
+      toast.success('Administrator removed.')
+      fetchData()
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to delete.')
+    }
   }
 
   async function onSubmit(formData: FormData) {
