@@ -65,7 +65,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              The official organization for scholars at Adamson University, uniting university-funded, corporate, and government scholars under one community.
+              A socio-civic organization for scholars at Adamson University, bringing together university-funded, corporate, and government scholars as one community.
             </p>
             {/* Social Links */}
             <div className="flex gap-3">
