@@ -104,12 +104,14 @@ export default function AdministratorsPage() {
       )
 
       const result = await res.json()
+      console.error('[delete-admin] status:', res.status, 'result:', result)
       if (!res.ok) throw new Error(result.error || 'Failed to delete.')
 
       await logActivity(currentAdmin, `Deleted administrator: ${row.full_name}`, 'Administrators', `Role: ${row.role}, Email: ${row.email}`)
       toast.success('Administrator removed.')
       fetchData()
     } catch (e: any) {
+      console.error('[delete-admin] error:', e)
       toast.error(e?.message || 'Failed to delete.')
     }
   }
