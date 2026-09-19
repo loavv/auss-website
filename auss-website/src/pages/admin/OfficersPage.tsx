@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { supabase, uploadFile, STORAGE_BUCKETS } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
 import { getInitials, logActivity } from '@/lib/utils'
 import type { Officer, OfficerCategory } from '@/types'
@@ -360,9 +361,7 @@ function OfficersTab() {
 
       if (imageFile) {
         if (isDemo) throw new Error('Image upload is not available in demo mode.')
-        const ext = imageFile.name.split('.').pop()
-        const path = `officers/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { url, error: uploadError } = await uploadFile(STORAGE_BUCKETS.OFFICERS, imageFile, path)
+        const { url, error: uploadError } = await uploadToCloudinary(imageFile, 'officers')
         if (!url) throw new Error(`Image upload failed: ${uploadError ?? 'Unknown error'}`)
         avatarUrl = url
       }
@@ -603,6 +602,7 @@ function OfficersTab() {
                         src={imagePreview || existingImageUrl!}
                         alt="Officer photo"
                         className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+                      loading="lazy"
                       />
                       <button type="button" onClick={removeImage}
                         className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow"

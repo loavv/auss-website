@@ -218,20 +218,6 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['website_settings']['Row'], 'id' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['website_settings']['Insert']>
       }
-      gallery: {
-        Row: {
-          id: string
-          title: string | null
-          description: string | null
-          image_url: string
-          category: string | null
-          is_featured: boolean
-          order: number
-          created_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['gallery']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['gallery']['Insert']>
-      }
     }
   }
 }
@@ -250,4 +236,3 @@ export type Inquiry = Database['public']['Tables']['inquiries']['Row']
 export type SocialMedia = Database['public']['Tables']['social_media']['Row']
 export type ActivityLog = Database['public']['Tables']['activity_logs']['Row']
 export type WebsiteSetting = Database['public']['Tables']['website_settings']['Row']
-export type GalleryItem = Database['public']['Tables']['gallery']['Row']

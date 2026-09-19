@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { supabase, uploadFile, STORAGE_BUCKETS } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate, logActivity } from '@/lib/utils'
 import type { Event } from '@/types'
@@ -155,14 +156,11 @@ export default function EventsAdminPage() {
       let bannerUrl: string | null = existingBannerUrl
 
       if (bannerFile) {
-        // Demo login has no real Supabase auth session — skip upload
         if (isDemo) {
           throw new Error('Image upload is not available in demo mode. Please log in with a real Supabase admin account to upload images.')
         }
-        const ext = bannerFile.name.split('.').pop()
-        const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { url, error: uploadError } = await uploadFile(STORAGE_BUCKETS.EVENTS, bannerFile, path)
-        if (!url) throw new Error(`Image upload failed: ${uploadError ?? 'Unknown error'}. Make sure the "events" storage bucket exists and has an upload policy for authenticated users.`)
+        const { url, error: uploadError } = await uploadToCloudinary(bannerFile, 'events')
+        if (!url) throw new Error(`Image upload failed: ${uploadError ?? 'Unknown error'}`)
         bannerUrl = url
       }
 
@@ -291,7 +289,8 @@ export default function EventsAdminPage() {
                       <img
                         src={bannerPreview || existingBannerUrl!}
                         alt="Banner preview"
-                        className="w-full h-full object-cover"
+                      className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                       <button
                         type="button"

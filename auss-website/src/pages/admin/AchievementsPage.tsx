@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { supabase, uploadFile, STORAGE_BUCKETS } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDate, logActivity } from '@/lib/utils'
 import type { Achievement } from '@/types'
@@ -111,9 +112,7 @@ export default function AchievementsPage() {
 
       if (imageFile) {
         if (isDemo) throw new Error('Image upload is not available in demo mode.')
-        const ext = imageFile.name.split('.').pop()
-        const path = `achievements/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { url, error: uploadError } = await uploadFile(STORAGE_BUCKETS.ACHIEVEMENTS, imageFile, path)
+        const { url, error: uploadError } = await uploadToCloudinary(imageFile, 'achievements')
         if (!url) throw new Error(`Image upload failed: ${uploadError ?? 'Unknown error'}`)
         imageUrl = url
       }
@@ -147,7 +146,7 @@ export default function AchievementsPage() {
       render: row => (
         <div className="flex items-center gap-3">
           {row.image_url ? (
-            <img src={row.image_url} alt={row.title} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+            <img src={row.image_url} alt={row.title} className="w-10 h-10 rounded-lg object-cover shrink-0" loading="lazy" />
           ) : (
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Trophy className="w-5 h-5 text-primary/40" />
@@ -240,8 +239,8 @@ export default function AchievementsPage() {
                         src={imagePreview || existingImageUrl!}
                         alt="Preview"
                         className="w-full h-full object-cover"
-                      />
-                      <button
+                        loading="lazy"
+                      /><button
                         type="button"
                         onClick={removeImage}
                         className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"

@@ -36,7 +36,6 @@ const AnnouncementsPage = lazy(() => import('@/pages/admin/AnnouncementsPage'))
 const EventsAdminPage = lazy(() => import('@/pages/admin/EventsAdminPage'))
 const OfficersPage = lazy(() => import('@/pages/admin/OfficersPage'))
 const AchievementsPage = lazy(() => import('@/pages/admin/AchievementsPage'))
-const GalleryAdminPage = lazy(() => import('@/pages/admin/GalleryAdminPage'))
 const FeedbackAdminPage = lazy(() => import('@/pages/admin/FeedbackAdminPage'))
 const InquiriesPage = lazy(() => import('@/pages/admin/InquiriesPage'))
 const AdministratorsPage = lazy(() => import('@/pages/admin/AdministratorsPage'))
@@ -105,7 +104,6 @@ export default function App() {
                 <Route path="events" element={<EventsAdminPage />} />
                 <Route path="officers" element={<OfficersPage />} />
                 <Route path="achievements" element={<AchievementsPage />} />
-                <Route path="gallery" element={<GalleryAdminPage />} />
                 <Route path="feedback" element={<FeedbackAdminPage />} />
                 <Route path="inquiries" element={<InquiriesPage />} />
                 <Route path="administrators" element={

@@ -23,7 +23,6 @@ export const STORAGE_BUCKETS = {
   LOGOS: 'logos',
   ANNOUNCEMENTS: 'announcements',
   EVENTS: 'events',
-  GALLERY: 'gallery',
   OFFICERS: 'officers',
   ACHIEVEMENTS: 'achievements',
   DOCUMENTS: 'documents',
