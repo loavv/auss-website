@@ -240,7 +240,7 @@ export default function EventsAdminPage() {
         loading={loading}
         onAdd={openAdd}
         onEdit={openEdit}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['title', 'venue', 'category']}
         addLabel="Add Event"
         emptyMessage="No events yet"

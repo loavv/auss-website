@@ -205,7 +205,7 @@ function CategoriesTab() {
         loading={loading}
         onAdd={openAdd}
         onEdit={openEdit}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['name', 'description']}
         addLabel="Add Category"
         emptyMessage="No categories added yet"
@@ -509,7 +509,7 @@ function OfficersTab() {
         loading={loading}
         onAdd={openAdd}
         onEdit={openEdit}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['full_name', 'position', 'department']}
         addLabel="Add Officer"
         emptyMessage="No officers in this category"

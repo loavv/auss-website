@@ -85,7 +85,7 @@ export default function InquiriesPage() {
         data={data}
         columns={columns}
         loading={loading}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['name', 'email', 'subject']}
         emptyMessage="No inquiries yet"
         emptyIcon={<Mail className="w-10 h-10 opacity-30" />}

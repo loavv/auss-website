@@ -134,7 +134,7 @@ export default function FeedbackAdminPage() {
         data={data}
         columns={columns}
         loading={loading}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['name', 'email', 'category', 'message']}
         emptyMessage="No feedback submitted yet"
         emptyIcon={<MessageSquare className="w-10 h-10 opacity-30" />}

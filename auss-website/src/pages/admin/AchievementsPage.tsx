@@ -189,7 +189,7 @@ export default function AchievementsPage() {
         loading={loading}
         onAdd={openAdd}
         onEdit={openEdit}
-        onDelete={handleDelete}
+        onDelete={admin?.role === 'super_admin' ? handleDelete : undefined}
         searchKeys={['title', 'awarded_by', 'category']}
         addLabel="Add Achievement"
         emptyMessage="No achievements added yet"

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Trash2, Edit, Plus, ChevronLeft, ChevronRight, ShieldOff } from 'lucide-react'
+import { Search, Trash2, Edit, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/contexts/AuthContext'
 
 export interface Column<T> {
   key: keyof T | string
@@ -40,8 +40,6 @@ export function DataTable<T extends { id: string }>({
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<T | null>(null)
-  const { admin } = useAuth()
-  const isSuperAdmin = admin?.role === 'super_admin'
 
   // Reset to page 1 whenever the data set changes (e.g. category filter switch)
   useEffect(() => {
@@ -163,28 +161,13 @@ export function DataTable<T extends { id: string }>({
                               </button>
                             )}
                             {onDelete && (
-                              isSuperAdmin ? (
-                                <button
-                                  onClick={() => setDeleteConfirm(row)}
-                                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                                  aria-label="Delete"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              ) : (
-                                <div className="relative group/tooltip">
-                                  <button
-                                    disabled
-                                    className="p-1.5 rounded-lg text-gray-200 cursor-not-allowed"
-                                    aria-label="Delete not allowed"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                  <div className="absolute right-0 bottom-full mb-1.5 px-2 py-1 rounded-lg bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-50">
-                                    Only Super Admins can delete
-                                  </div>
-                                </div>
-                              )
+                              <button
+                                onClick={() => setDeleteConfirm(row)}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                aria-label="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             )}
                           </div>
                         </td>
